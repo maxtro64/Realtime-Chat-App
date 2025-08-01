@@ -8,6 +8,7 @@ const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: ["https://realtime-chat-app-maxtro64s-projects.vercel.app"],
+     credentials:true
   },
 });
 
