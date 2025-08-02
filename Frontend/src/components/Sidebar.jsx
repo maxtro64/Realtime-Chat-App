@@ -26,13 +26,13 @@ const Sidebar = () => {
     getUsers();
     
     console.log("users:",users);
-  }, [getUsers]);
+  }, []);
 
   // Debug effect
   useEffect(() => {
     console.log("Current online users:", onlineUsers);
 
-  }, [onlineUsers]);
+  }, []);
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
