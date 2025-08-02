@@ -38,7 +38,7 @@ export const signup = async (req, res) => {
         fullName: newUser.fullName,
         email: newUser.email,
         profilePic: newUser.profilePic,
-      },
+      }
     });
   } catch (error) {
     console.error("Signup error:", error.message);
@@ -66,7 +66,7 @@ export const login = async (req, res) => {
         fullName: user.fullName,
         email: user.email,
         profilePic: user.profilePic,
-      },
+      }
     });
   } catch (error) {
     console.error("Login error:", error.message);
