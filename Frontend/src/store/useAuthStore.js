@@ -15,45 +15,28 @@ export const useAuthStore = create((set, get) => ({
   onlineUsers: [],
   socket: null,
 
-  // ✅ Check if user is logged in (on initial load)
-checkAuth: async () => {
-  try {
-    // Add debug logging before the request
-    console.log('Making auth check request...');
-    
-    const res = await axiosInstance.get("/auth/check", {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Debug the response
-    console.log('Auth check successful:', res.data);
-    
-    set({ authUser: res.data });
-    get().connectSocket();
-  } catch (error) {
-    // Enhanced error logging
-    console.error("Full error in checkAuth:", {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status,
-      headers: error.response?.headers,
-      config: error.config,
-    });
-    
-    set({ authUser: null });
-    
-    // Optional: Clear invalid cookie if exists
-    if (error.response?.status === 401) {
-      document.cookie = 'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  checkAuth: async () => {
+    try {
+      console.log("Checking auth status...");
+      const res = await axiosInstance.get("/auth/check");
+      console.log("Auth check successful:", res.data);
+      set({ authUser: res.data });
+      get().connectSocket();
+    } catch (error) {
+      console.error("Auth check failed:", {
+        status: error.response?.status,
+        data: error.response?.data,
+      });
+      set({ authUser: null });
+      
+      if (error.response?.status === 401) {
+        document.cookie = 'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
+    } finally {
+      set({ isCheckingAuth: false });
     }
-  } finally {
-    set({ isCheckingAuth: false });
-  }
-},
+  },
 
-  // ✅ Signup method
   signup: async (data) => {
     set({ isSigningUp: true });
     try {
@@ -68,7 +51,6 @@ checkAuth: async () => {
     }
   },
 
-  // ✅ Login method
   login: async (data) => {
     set({ isLoggingIn: true });
     try {
@@ -83,7 +65,6 @@ checkAuth: async () => {
     }
   },
 
-  // ✅ Logout method
   logout: async () => {
     try {
       await axiosInstance.post("/auth/logout");
@@ -95,7 +76,6 @@ checkAuth: async () => {
     }
   },
 
-  // ✅ Update user profile
   updateProfile: async (data) => {
     set({ isUpdatingProfile: true });
     try {
@@ -103,43 +83,45 @@ checkAuth: async () => {
       set({ authUser: res.data });
       toast.success("Profile updated successfully");
     } catch (error) {
-      console.error("Error in updateProfile:", error);
+      console.error("Update error:", error);
       toast.error(error?.response?.data?.message || "Update failed");
     } finally {
       set({ isUpdatingProfile: false });
     }
   },
 
-  // ✅ Connect to socket server
-connectSocket: () => {
-  const { authUser, socket } = get();
-  if (!authUser || socket?.connected) return;
+  connectSocket: () => {
+    const { authUser, socket } = get();
+    if (!authUser || socket?.connected) return;
 
-  const newSocket = io(BASE_URL, {
-    withCredentials: true,
-    query: { userId: authUser._id.toString() }, // Force string ID
-    autoConnect: true, // ← Add this
-    transports: ['websocket'] // ← Force WebSocket
-  });
+    const newSocket = io(BASE_URL, {
+      withCredentials: true,
+      query: { userId: authUser._id.toString() },
+      transports: ['websocket'],
+      reconnectionAttempts: 3
+    });
 
-  newSocket.on("connect", () => {
-    console.log("Socket connected!"); // Should see this in logs
-  });
+    newSocket.on("connect", () => {
+      console.log("Socket connected:", newSocket.id);
+    });
 
-  newSocket.on("getOnlineUsers", (userIds) => {
-    console.log("Connected users",userIds)
-    set({ onlineUsers: userIds.map(String) }); // Ensure strings
-  });
+    newSocket.on("getOnlineUsers", (userIds) => {
+      set({ onlineUsers: userIds.map(String) });
+    });
 
-  set({ socket: newSocket });
-}
+    newSocket.on("connect_error", (err) => {
+      console.error("Connection error:", err.message);
+    });
 
-  // ✅ Disconnect from socket
+    set({ socket: newSocket });
+  },
+
   disconnectSocket: () => {
-    const socket = get().socket;
-    if (socket?.connected) {
+    const { socket } = get();
+    if (socket) {
+      socket.off("getOnlineUsers");
       socket.disconnect();
       set({ socket: null, onlineUsers: [] });
     }
-  },
+  }
 }));
