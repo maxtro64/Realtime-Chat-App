@@ -127,6 +127,7 @@ connectSocket: () => {
   });
 
   newSocket.on("getOnlineUsers", (userIds) => {
+    console.log(userIds)
     set({ onlineUsers: userIds.map(String) }); // Ensure strings
   });
 
