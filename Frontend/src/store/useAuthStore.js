@@ -108,13 +108,19 @@ set({ isSigningUp: true });
 
   if (!authUser || socket?.connected || !token) return;
 
+  const userId = authUser?._id;
+  if (!userId) {
+    console.error("Missing userId for socket connection");
+    return;
+  }
+
   try {
     const newSocket = io(BASE_URL, {
       withCredentials: true,
       transports: ['websocket'],
       query: {
-        userId: authUser._id?.toString(),
-        token, // send token as query param (or use auth headers if backend supports it)
+        userId: String(userId), // ensure it's a string
+        token, // if your backend uses it
       },
       reconnectionAttempts: 5,
     });
@@ -124,7 +130,7 @@ set({ isSigningUp: true });
     });
 
     newSocket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds.map(String) });
+      set({ onlineUsers: userIds.map((id) => String(id)) });
     });
 
     newSocket.on("connect_error", (err) => {
@@ -133,9 +139,10 @@ set({ isSigningUp: true });
 
     set({ socket: newSocket });
   } catch (err) {
-    console.error("Socket init failed:", err.message);
+    console.error("Socket initialization failed:", err.message);
   }
 }
+
 ,
 
   disconnectSocket: () => {
