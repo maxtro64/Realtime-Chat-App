@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
 // Set your backend base URL depending on the environment
-const BASE_URL ="https://realtime-chat-app-maxtro64s-projects.vercel.app";
+const BASE_URL ="https://realtime-chatty-app-wv5e.onrender.com";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
@@ -112,20 +112,26 @@ checkAuth: async () => {
 
   // ✅ Connect to socket server
 connectSocket: () => {
-  const { authUser } = get();
-  if (!authUser) return;
+  const { authUser, socket } = get();
+  if (!authUser || socket?.connected) return;
 
-  const socket = io(BASE_URL, {
-    withCredentials: true,  // ← Critical for cookies
-    query: { userId: authUser._id.toString() }  // ← Ensure string ID
+  const newSocket = io(BASE_URL, {
+    withCredentials: true,
+    query: { userId: authUser._id.toString() }, // Force string ID
+    autoConnect: true, // ← Add this
+    transports: ['websocket'] // ← Force WebSocket
   });
 
-  socket.on("getOnlineUsers", (userIds) => {
-    set({ onlineUsers: userIds.map(id => id.toString()) });  // ← Convert all IDs to strings
+  newSocket.on("connect", () => {
+    console.log("Socket connected!"); // Should see this in logs
   });
-  
-  set({ socket });
-},
+
+  newSocket.on("getOnlineUsers", (userIds) => {
+    set({ onlineUsers: userIds.map(String) }); // Ensure strings
+  });
+
+  set({ socket: newSocket });
+}
 
   // ✅ Disconnect from socket
   disconnectSocket: () => {
