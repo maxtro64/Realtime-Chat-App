@@ -27,11 +27,14 @@ export const getReceiverSocketId = (receiverId) => {
 
 // Authentication Middleware (optional but recommended)
 io.use((socket, next) => {
-  const token = socket.handshake.auth?.token;
-  if (!token) {
-    console.log("No token provided");
-    return next(new Error("Authentication error"));
+  const userId = socket.handshake.query.userId;
+  const token = socket.handshake.auth.token;
+  
+   if (!userId || !token) {
+    console.log("❌ Socket connection blocked: Missing userId or token");
+    return next(new Error("Authentication failed"));
   }
+  socket.userId = userId;
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
