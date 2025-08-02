@@ -17,10 +17,10 @@ const Sidebar = () => {
     : users;
 
     useEffect(() => {
-    console.log(users);
-    console.log(filteredUsers);
+    console.log("All Users",users);
+    console.log("Online Users",filteredUsers);
     getUsers();
-  }, [getUsers,filteredUsers]);
+  }, [getUsers]);
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
