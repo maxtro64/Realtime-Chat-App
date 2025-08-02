@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
 // Set your backend base URL depending on the environment
-const BASE_URL ="https://realtime-chatty-app-wv5e.onrender.com";
+const BASE_URL ="https://realtime-chat-2jot910q2-maxtro64s-projects.vercel.app";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
