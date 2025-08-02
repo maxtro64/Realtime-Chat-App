@@ -26,7 +26,7 @@ const Sidebar = () => {
     getUsers();
     
     console.log("Current online users:", onlineUsers);
-  }, [getUsers, connectSocket]);
+  }, [getUsers]);
 
   // Debug effect
   useEffect(() => {
