@@ -130,7 +130,7 @@ set({ isSigningUp: true });
     });
 
     newSocket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds.map((id) => String(id)) });
+      set({ onlineUsers: userIds.map((id) => id) });
     });
 
     newSocket.on("connect_error", (err) => {
