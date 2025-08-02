@@ -7,7 +7,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["https://realtime-chat-app-tan-alpha.vercel.app"],
+   
+    origin: [
+      "https://realtime-chat-app-tan-alpha.vercel.app", // Your frontend
+      "https://realtime-chatty-app-wv5e.onrender.com" // Your backend
+    ]
      credentials:true
   },
 });
