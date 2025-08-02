@@ -16,11 +16,22 @@ const Sidebar = () => {
     ? users.filter((user) => onlineUsers.includes(user._id))
     : users;
 
-    useEffect(() => {
-    console.log("All Users",users);
-    console.log("Online Users",filteredUsers);
+      const isUserOnline = (userId) => {
+    return onlineUsers.some(onlineId => 
+      onlineId.toString() === userId.toString()
+    );
+  };
+
+  useEffect(() => {
     getUsers();
-  }, [getUsers]);
+    connectSocket(); // Ensure socket connection on mount
+  }, [getUsers, connectSocket]);
+
+  // Debug effect
+  useEffect(() => {
+    console.log("Current online users:", onlineUsers);
+    console.log("Socket status:", socket?.connected ? "Connected" : "Disconnected");
+  }, [onlineUsers, socket]);
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
