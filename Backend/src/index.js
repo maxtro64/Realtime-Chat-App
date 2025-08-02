@@ -14,15 +14,16 @@ import { app, server } from "./lib/socket.js";
 dotenv.config();
 
 const PORT = process.env.NODE_PORT;
-const __dirname = path.resolve();
+// const __dirname = path.resolve();
 
 app.use(express.json({ limit: '10mb' })); // Increase from default 100kb
-// app.use(express.urlencoded({ limit: '10mb', extended: true }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 app.use(
   cors({
     origin: "https://realtime-chat-app-maxtro64s-projects.vercel.app",
     credentials: true,
+    exposedHeaders: ['set-cookie']
   })
 );
 
