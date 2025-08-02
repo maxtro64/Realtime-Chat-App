@@ -12,7 +12,7 @@ export const generateToken = (userId, res) => {
     maxAge: 7 * 24 * 60 * 60 * 1000, // MS
      // prevent XSS attacks cross-site scripting attacks
     sameSite: 'none', // CSRF attacks cross-site request forgery attacks
-    domain: '.onrender.com',
+    
     secure: true,
   });
 
