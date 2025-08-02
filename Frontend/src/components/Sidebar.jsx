@@ -24,7 +24,7 @@ const Sidebar = () => {
 
   useEffect(() => {
     getUsers();
-    connectSocket(); // Ensure socket connection on mount
+    
     console.log("Current online users:", onlineUsers);
   }, [getUsers, connectSocket]);
 
@@ -32,7 +32,7 @@ const Sidebar = () => {
   useEffect(() => {
     console.log("Current online users:", onlineUsers);
     console.log("Socket status:", socket?.connected ? "Connected" : "Disconnected");
-  }, [onlineUsers, socket]);
+  }, [onlineUsers]);
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
