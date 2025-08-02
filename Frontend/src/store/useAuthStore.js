@@ -103,20 +103,24 @@ set({ isSigningUp: true });
   },
 
   connectSocket: () => {
-    const { authUser, socket } = get();
-    if (!authUser || socket?.connected) return;
+  const { authUser, socket } = get();
+  const token = localStorage.getItem("token");
 
+  if (!authUser || socket?.connected || !token) return;
+
+  try {
     const newSocket = io(BASE_URL, {
       withCredentials: true,
-       query: {
-    userId: authUser?._id, // make sure this is set
-  } ,
       transports: ['websocket'],
-      reconnectionAttempts: 3
+      query: {
+        userId: authUser._id?.toString(),
+        token, // send token as query param (or use auth headers if backend supports it)
+      },
+      reconnectionAttempts: 5,
     });
 
     newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
+      console.log("✅ Socket connected:", newSocket.id);
     });
 
     newSocket.on("getOnlineUsers", (userIds) => {
@@ -124,11 +128,15 @@ set({ isSigningUp: true });
     });
 
     newSocket.on("connect_error", (err) => {
-      console.error("Connection error:", err.message);
+      console.error("❌ Socket connection error:", err.message);
     });
 
     set({ socket: newSocket });
-  },
+  } catch (err) {
+    console.error("Socket init failed:", err.message);
+  }
+}
+,
 
   disconnectSocket: () => {
     const { socket } = get();
