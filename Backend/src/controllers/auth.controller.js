@@ -109,11 +109,36 @@ export const updateProfile = async (req, res) => {
   }
 };
 
-export const checkAuth = (req, res) => {
+export const checkAuth = async (req, res) => {
   try {
-    res.status(200).json(req.user);
+    // Verify the user object exists from the protectRoute middleware
+    if (!req.user) {
+      return res.status(401).json({ 
+        success: false,
+        message: "Not authenticated" 
+      });
+    }
+
+    // Return minimal necessary user information
+    const userData = {
+      id: req.user.userId,
+      isAuthenticated: true,
+      // Add other safe-to-expose fields as needed
+    };
+
+    res.status(200).json({
+      success: true,
+      user: userData
+    });
+
   } catch (error) {
-    console.log("Error in checkAuth controller", error.message);
-    res.status(500).json({ message: "Internal Server Error" });
+    console.error("Error in checkAuth controller:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
+};
+
 };
