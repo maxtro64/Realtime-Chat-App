@@ -25,13 +25,13 @@ const Sidebar = () => {
   useEffect(() => {
     getUsers();
     
-    console.log("Current online users:", onlineUsers);
+    console.log("users:",users);
   }, [getUsers]);
 
   // Debug effect
   useEffect(() => {
     console.log("Current online users:", onlineUsers);
-    console.log("Socket status:", socket?.connected ? "Connected" : "Disconnected");
+
   }, [onlineUsers]);
 
   if (isUsersLoading) return <SidebarSkeleton />;
