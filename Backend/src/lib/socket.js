@@ -10,7 +10,7 @@ const io = new Server(server, {
    
     origin: [
       "https://realtime-chat-app-tan-alpha.vercel.app", // Your frontend
-      "https://realtime-chatty-app-wv5e.onrender.com" // Your backend
+      "https://realtime-chat-2jot910q2-maxtro64s-projects.vercel.app" // Your backend
     ]
      credentials:true
   },
