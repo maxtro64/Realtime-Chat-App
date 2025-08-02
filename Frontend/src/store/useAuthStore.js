@@ -4,10 +4,7 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
 // Set your backend base URL depending on the environment
-const BASE_URL =
-  import.meta.env.MODE === "development"
-    ? "http://localhost:5001"
-    : "https://realtime-chat-app-maxtro64s-projects.vercel.app";
+const BASE_URL ="https://realtime-chat-app-maxtro64s-projects.vercel.app";
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
