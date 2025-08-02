@@ -7,13 +7,10 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.NODE_ENV === "production" ? [
-      "http://realtime-chat-app-tan-alpha.vercel.app"
-     ],
-   
+    origin: "http://realtime-chat-app-tan-alpha.vercel.app",
     credentials: true
   },
-  allowEIO3: true // If using Socket.IO v2 client
+  allowEIO3: true
 });
 
 // used to store online users
