@@ -20,7 +20,7 @@ const Sidebar = () => {
     console.log("All Users",users);
     console.log("Online Users",filteredUsers);
     getUsers();
-  }, [filteredUsers]);
+  }, [getUsers,filteredUsers]);
 
   if (isUsersLoading) return <SidebarSkeleton />;
 
