@@ -8,7 +8,7 @@ export const generateToken = (userId, res) => {
 res.cookie('jwt', token, {
   httpOnly: true,
   secure: true, // REQUIRED for HTTPS
-  sameSite: 'true', // REQUIRED for cross-site
+  sameSite: 'none', // REQUIRED for cross-site
    domain: '.vercel.app', 
   maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
 });
