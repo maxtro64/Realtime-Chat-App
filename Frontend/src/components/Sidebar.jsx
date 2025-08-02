@@ -25,6 +25,7 @@ const Sidebar = () => {
   useEffect(() => {
     getUsers();
     connectSocket(); // Ensure socket connection on mount
+    console.log("Current online users:", onlineUsers);
   }, [getUsers, connectSocket]);
 
   // Debug effect
