@@ -108,7 +108,7 @@ set({ isSigningUp: true });
 
   if (!authUser || socket?.connected || !token) return;
 
-  const userId = authUser?._id;
+  const userId = authUser._id;
   if (!userId) {
     console.error("Missing userId for socket connection");
     return;
@@ -119,7 +119,7 @@ set({ isSigningUp: true });
       withCredentials: true,
       transports: ['websocket'],
       query: {
-        userId: String(userId), // ensure it's a string
+        userId: userId, // ensure it's a string
         token, // if your backend uses it
       },
       reconnectionAttempts: 5,
