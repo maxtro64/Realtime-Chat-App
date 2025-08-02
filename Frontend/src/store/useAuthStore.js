@@ -111,23 +111,21 @@ checkAuth: async () => {
   },
 
   // ✅ Connect to socket server
-  connectSocket: () => {
-    const { authUser, socket } = get();
-    if (!authUser || socket?.connected) return;
+connectSocket: () => {
+  const { authUser } = get();
+  if (!authUser) return;
 
-    const newSocket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
-    });
+  const socket = io(BASE_URL, {
+    withCredentials: true,  // ← Critical for cookies
+    query: { userId: authUser._id.toString() }  // ← Ensure string ID
+  });
 
-    newSocket.connect();
-    set({ socket: newSocket });
-
-    newSocket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
-  },
+  socket.on("getOnlineUsers", (userIds) => {
+    set({ onlineUsers: userIds.map(id => id.toString()) });  // ← Convert all IDs to strings
+  });
+  
+  set({ socket });
+},
 
   // ✅ Disconnect from socket
   disconnectSocket: () => {
