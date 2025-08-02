@@ -16,19 +16,42 @@ export const useAuthStore = create((set, get) => ({
   socket: null,
 
   // ✅ Check if user is logged in (on initial load)
-  checkAuth: async () => {
-    try {
-      const res = await axiosInstance.get("/auth/check");
-      console.log(res)
-      set({ authUser: res.data });
-      get().connectSocket();
-    } catch (error) {
-      console.error("Error in checkAuth: in frontend", error);
-      set({ authUser: null });
-    } finally {
-      set({ isCheckingAuth: false });
+checkAuth: async () => {
+  try {
+    // Add debug logging before the request
+    console.log('Making auth check request...');
+    
+    const res = await axiosInstance.get("/auth/check", {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Debug the response
+    console.log('Auth check successful:', res.data);
+    
+    set({ authUser: res.data });
+    get().connectSocket();
+  } catch (error) {
+    // Enhanced error logging
+    console.error("Full error in checkAuth:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      headers: error.response?.headers,
+      config: error.config,
+    });
+    
+    set({ authUser: null });
+    
+    // Optional: Clear invalid cookie if exists
+    if (error.response?.status === 401) {
+      document.cookie = 'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
     }
-  },
+  } finally {
+    set({ isCheckingAuth: false });
+  }
+},
 
   // ✅ Signup method
   signup: async (data) => {
