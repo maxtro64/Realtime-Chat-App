@@ -21,7 +21,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: res.data });
       get().connectSocket();
     } catch (error) {
-      console.log("Error in checkAuth:", error);
+      // console.log("Not logged in");
       set({ authUser: null });
     } finally {
       set({ isCheckingAuth: false });
@@ -87,9 +87,7 @@ export const useAuthStore = create((set, get) => ({
     if (!authUser || get().socket?.connected) return;
 
     const socket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
+      withCredentials: true,
     });
     socket.connect();
 
@@ -97,6 +95,14 @@ export const useAuthStore = create((set, get) => ({
 
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
+    });
+
+    socket.on("userOnline", (userId) => {
+      set({ onlineUsers: [...get().onlineUsers, userId] });
+    });
+
+    socket.on("userOffline", (userId) => {
+      set({ onlineUsers: get().onlineUsers.filter((id) => id !== userId) });
     });
   },
   disconnectSocket: () => {

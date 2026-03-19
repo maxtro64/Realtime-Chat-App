@@ -7,7 +7,7 @@ export const protectRoute = async (req, res, next) => {
     const token = req.cookies?.jwt || req.headers.authorization?.split(' ')[1];
     
     if (!token) {
-      // console.log('No token found in cookies or headers');
+      console.log('No token found in cookies or headers');
       return res.status(401).json({ 
         error: "Unauthorized - No Token Provided",
         receivedCookies: req.cookies,
@@ -16,13 +16,7 @@ export const protectRoute = async (req, res, next) => {
     }
 
     // 2. Enhanced token verification
-    const decoded = jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        // console.log('JWT verification error:', err.name);
-        throw err; // This will be caught in the catch block
-      }
-      return decoded;
-    });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // 3. Better user lookup with error handling
     const user = await User.findById(decoded.userId).select("-password").lean();

@@ -15,6 +15,9 @@ const ChatContainer = () => {
     selectedUser,
     subscribeToMessages,
     unsubscribeFromMessages,
+    subscribeToTyping,
+    unsubscribeFromTyping,
+    typingUsers,
   } = useChatStore();
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
@@ -23,9 +26,13 @@ const ChatContainer = () => {
     getMessages(selectedUser._id);
 
     subscribeToMessages();
+    subscribeToTyping();
 
-    return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+    return () => {
+      unsubscribeFromMessages();
+      unsubscribeFromTyping();
+    };
+  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages, subscribeToTyping, unsubscribeFromTyping]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -52,7 +59,6 @@ const ChatContainer = () => {
           <div
             key={message._id}
             className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            ref={messageEndRef}
           >
             <div className=" chat-image avatar">
               <div className="size-10 rounded-full border">
@@ -83,6 +89,22 @@ const ChatContainer = () => {
             </div>
           </div>
         ))}
+        
+        {typingUsers[selectedUser._id] && (
+          <div className="chat chat-start">
+            <div className="chat-image avatar">
+              <div className="size-10 rounded-full border">
+                <img src={selectedUser.profilePic || "/avatar.png"} alt="profile pic" />
+              </div>
+            </div>
+            <div className="chat-bubble bg-transparent p-0 flex items-center gap-1">
+              <span className="loading loading-dots loading-xs"></span>
+              <span className="text-xs italic opacity-50">typing...</span>
+            </div>
+          </div>
+        )}
+        
+        <div ref={messageEndRef} />
       </div>
 
       <MessageInput />

@@ -9,14 +9,16 @@ export const useChatStore = create((set, get) => ({
   selectedUser: null,
   isUsersLoading: false,
   isMessagesLoading: false,
+  typingUsers: {}, // {userId: true}
 
-  getUsers: async () => {
+  getUsers: async (params = {}) => {
     set({ isUsersLoading: true });
     try {
-      const res = await axiosInstance.get("/messages/users");
-      set({ users: res.data });
+      const res = await axiosInstance.get("/messages/users", { params });
+      // API now returns { users, totalPages, currentPage }
+      set({ users: res.data.users });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to load users");
     } finally {
       set({ isUsersLoading: false });
     }
@@ -27,12 +29,22 @@ export const useChatStore = create((set, get) => ({
     try {
       const res = await axiosInstance.get(`/messages/${userId}`);
       set({ messages: res.data });
+      get().markMessagesAsRead(userId);
     } catch (error) {
       toast.error(error.response.data.message);
     } finally {
       set({ isMessagesLoading: false });
     }
   },
+
+  markMessagesAsRead: async (userId) => {
+    try {
+      await axiosInstance.put(`/messages/read/${userId}`);
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+    }
+  },
+
   sendMessage: async (messageData) => {
     const { selectedUser, messages } = get();
     try {
@@ -41,6 +53,16 @@ export const useChatStore = create((set, get) => ({
     } catch (error) {
       toast.error(error.response?.data?.message);
     }
+  },
+
+  sendTypingStatus: (isTyping) => {
+    const { selectedUser } = get();
+    const socket = useAuthStore.getState().socket;
+    if (!selectedUser || !socket) return;
+    
+    socket.emit(isTyping ? "typing" : "stopTyping", {
+      receiverId: selectedUser._id,
+    });
   },
 
   subscribeToMessages: () => {
@@ -56,12 +78,37 @@ export const useChatStore = create((set, get) => ({
       set({
         messages: [...get().messages, newMessage],
       });
+      get().markMessagesAsRead(selectedUser._id);
     });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+  },
+
+  subscribeToTyping: () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+
+    socket.on("userTyping", ({ senderId }) => {
+      set((state) => ({
+        typingUsers: { ...state.typingUsers, [senderId]: true },
+      }));
+    });
+
+    socket.on("userStopTyping", ({ senderId }) => {
+      set((state) => ({
+        typingUsers: { ...state.typingUsers, [senderId]: false },
+      }));
+    });
+  },
+
+  unsubscribeFromTyping: () => {
+    const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+    socket.off("userTyping");
+    socket.off("userStopTyping");
   },
 
   setSelectedUser: (selectedUser) => set({ selectedUser }),

@@ -7,9 +7,50 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 export const getUsersForSidebar = async (req, res) => {
   try {
     const loggedInUserId = req.user._id;
-    const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password");
+    const { limit = 20, page = 1, search = "" } = req.query;
+    
+    const query = { _id: { $ne: loggedInUserId } };
+    
+    if (search) {
+      query.fullName = { $regex: search, $options: "i" };
+    }
 
-    res.status(200).json(filteredUsers);
+    const users = await User.find(query)
+      .select("-password")
+      .limit(parseInt(limit))
+      .skip((parseInt(page) - 1) * parseInt(limit))
+      .lean();
+
+    // Fetch last message for each user
+    const usersWithLastMessage = await Promise.all(
+      users.map(async (user) => {
+        const lastMessage = await Message.findOne({
+          $or: [
+            { senderId: loggedInUserId, receiverId: user._id },
+            { senderId: user._id, receiverId: loggedInUserId },
+          ],
+        }).sort({ createdAt: -1 });
+
+        return {
+          ...user,
+          lastMessage: lastMessage ? {
+            text: lastMessage.text,
+            image: !!lastMessage.image,
+            createdAt: lastMessage.createdAt,
+            isRead: lastMessage.isRead,
+            senderId: lastMessage.senderId
+          } : null
+        };
+      })
+    );
+
+    const totalUsers = await User.countDocuments(query);
+
+    res.status(200).json({
+      users: usersWithLastMessage,
+      totalPages: Math.ceil(totalUsers / limit),
+      currentPage: parseInt(page)
+    });
   } catch (error) {
     console.error("Error in getUsersForSidebar: ", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -19,16 +60,26 @@ export const getUsersForSidebar = async (req, res) => {
 export const getMessages = async (req, res) => {
   try {
     const { id: userToChatId } = req.params;
+    const { limit = 20, before } = req.query;
     const myId = req.user._id;
 
-    const messages = await Message.find({
+    const query = {
       $or: [
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    });
+    };
 
-    res.status(200).json(messages);
+    if (before) {
+      query.createdAt = { $lt: new Date(before) };
+    }
+
+    const messages = await Message.find(query)
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    // Reverse to return in chronological order for the frontend
+    res.status(200).json(messages.reverse());
   } catch (error) {
     console.log("Error in getMessages controller: ", error.message);
     res.status(500).json({ error: "Internal server error" });
@@ -65,6 +116,23 @@ export const sendMessage = async (req, res) => {
     res.status(201).json(newMessage);
   } catch (error) {
     console.log("Error in sendMessage controller: ", error.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+export const markMessagesAsRead = async (req, res) => {
+  try {
+    const { id: userToChatId } = req.params;
+    const myId = req.user._id;
+
+    await Message.updateMany(
+      { senderId: userToChatId, receiverId: myId, isRead: false },
+      { $set: { isRead: true } }
+    );
+
+    res.status(200).json({ message: "Messages marked as read" });
+  } catch (error) {
+    console.error("Error in markMessagesAsRead: ", error.message);
     res.status(500).json({ error: "Internal server error" });
   }
 };
