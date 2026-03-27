@@ -9,11 +9,25 @@ import Redis from "ioredis";
 const app = express();
 const server = http.createServer(app);
 
+// Get CORS origin from environment, fallback to localhost for development
+const getCorsOrigin = () => {
+  if (process.env.NODE_ENV === "production") {
+    return process.env.FRONTEND_URL || "https://yourdomain.com";
+  }
+  return ["http://localhost:5173", "http://localhost:3000", "http://localhost:5001"];
+};
+
 const io = new Server(server, {
   cors: {
-    origin: ["https://realtime-chat-app-maxtro64s-projects.vercel.app", "http://localhost:5173"],
-    credentials: true
+    origin: getCorsOrigin(),
+    credentials: true,
+    methods: ["GET", "POST"]
   },
+  transports: ["websocket", "polling"],
+  reconnection: true,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  reconnectionAttempts: 5
 });
 
 // Redis Adapter for Horizontal Scaling

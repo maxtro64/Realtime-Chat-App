@@ -3,8 +3,6 @@ import axiosInstance from "../lib/axios";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
-
 export const useAuthStore = create((set, get) => ({
   authUser: null,
   isSigningUp: false,
@@ -86,10 +84,31 @@ export const useAuthStore = create((set, get) => ({
     const { authUser } = get();
     if (!authUser || get().socket?.connected) return;
 
-    const socket = io(BASE_URL, {
+    // Get backend URL from environment or fallback
+    const backendURL = import.meta.env.MODE === "development" 
+      ? "http://localhost:5001" 
+      : import.meta.env.VITE_BACKEND_URL || window.location.origin;
+
+    const socket = io(backendURL, {
       withCredentials: true,
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5
     });
-    socket.connect();
+    
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+    });
+    
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+    
+    socket.on("disconnect", (reason) => {
+      console.log("Socket disconnected:", reason);
+    });
 
     set({ socket: socket });
 
