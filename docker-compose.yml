@@ -18,9 +18,13 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/chat-app
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your_super_secret_key
+      - JWT_SECRET=change_this_to_a_real_secret
       - NODE_PORT=5001
       - NODE_ENV=production
+      - FRONTEND_URL=http://localhost:5173
+      - CLOUDINARY_CLOUD_NAME=${CLOUDINARY_CLOUD_NAME}
+      - CLOUDINARY_API_KEY=${CLOUDINARY_API_KEY}
+      - CLOUDINARY_API_SECRET=${CLOUDINARY_API_SECRET}
     depends_on:
       - mongodb
       - redis

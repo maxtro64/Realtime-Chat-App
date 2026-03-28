@@ -7,11 +7,8 @@ export const protectRoute = async (req, res, next) => {
     const token = req.cookies?.jwt || req.headers.authorization?.split(' ')[1];
     
     if (!token) {
-      console.log('No token found in cookies or headers');
       return res.status(401).json({ 
-        error: "Unauthorized - No Token Provided",
-        receivedCookies: req.cookies,
-        receivedHeaders: req.headers
+        error: "Unauthorized - No Token Provided"
       });
     }
 
@@ -21,10 +18,8 @@ export const protectRoute = async (req, res, next) => {
     // 3. Better user lookup with error handling
     const user = await User.findById(decoded.userId).select("-password").lean();
     if (!user) {
-      // console.log(`User ${decoded.userId} not found in database`);
       return res.status(404).json({ 
-        error: "User not found",
-        decodedToken: decoded // For debugging
+        error: "User not found"
       });
     }
 

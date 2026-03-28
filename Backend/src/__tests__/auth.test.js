@@ -1,10 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import request from "supertest";
-import { app } from "../lib/socket.js"; // app is exported from socket.js
-import User from "../models/user.model.js";
+import app from "../app.js";
 
 vi.mock("../models/user.model.js");
-vi.mock("../lib/db.js", () => ({
+vi.mock("../config/db.js", () => ({
   connectDB: vi.fn(),
 }));
 
@@ -17,7 +16,7 @@ describe("Auth Controller", () => {
     const res = await request(app)
       .post("/api/auth/signup")
       .send({ email: "test@example.com" });
-    
+
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("Validation failed");
   });
@@ -26,7 +25,7 @@ describe("Auth Controller", () => {
     const res = await request(app)
       .post("/api/auth/signup")
       .send({ fullName: "Test User", email: "invalid-email", password: "password123" });
-    
+
     expect(res.status).toBe(400);
   });
 });
